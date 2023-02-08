@@ -1,2 +1,1 @@
-A python script to download web fictions from specific web site.
-
+A python script to download web fictions from a specific web site.
