@@ -63,24 +63,29 @@ def process_html_123du_next_page(content):
 
 class Read123du:
     website_url = "https://www.123duw.com"
+    mobile_web_url = "https://m.123duw.com"
     book_url = "https://www.123duw.com/dudu-33/3250866/"
+    mobile_url = "https://m.123duw.com/dudu-33/3250866/"
     section_id = "51981514.html"
     cookie = {'cookie':''}
+    mobile_cookie = {'cookie':''}
     soup = None
+    mobile_soup = None
 
     whole_text = ""
 
     def __init__(self, book_url, section_id):
         self.book_url = book_url
         self.section_id = section_id
-        self.cookie = {'cookie':''}
+        self.cookie = {'cookie':'', 'sec-ch-ua-platform':"Windows"}
+        self.mobile_cookie = {'cookie':'', 'sec-ch-ua-platform':"Android"}
 
     def setCookie(self):
         #get js & var
         response = download_content(self.book_url+self.section_id, self.cookie)
         response_header = response.headers
         response_header_cookie = response_header.get('Set-Cookie')
-        self.cookie = {'cookie': response_header_cookie}
+        self.cookie = {'cookie': response_header_cookie, 'sec-ch-ua-platform':"Windows"}
         content = response.data
         content = content.decode('gbk')
         soup = BeautifulSoup(content, 'html.parser')
@@ -97,6 +102,30 @@ class Read123du:
         key_url = js2py.eval_js(js_content)
         key_response = download_content(self.website_url+key_url, self.cookie)
         self.cookie['cookie'] = key_response.headers.get('Set-Cookie')
+
+    def setMobileCookie(self):
+        #get js & var
+        self.mobile_cookie = {'cookie': '', 'sec-ch-ua-platform':"Android"}
+        response = download_content(self.mobile_url+self.section_id, self.mobile_cookie)
+        response_header = response.headers
+        response_header_cookie = response_header.get('Set-Cookie')
+        self.mobile_cookie = {'cookie': response_header_cookie, 'sec-ch-ua-platform':"Android"}
+        content = response.data
+        content = content.decode('gbk')
+        soup = BeautifulSoup(content, 'html.parser')
+        script_tags = soup.find_all('script')
+        var_c2 = script_tags[1].text
+        var_c2 = var_c2[8:-2]
+        js_url = script_tags[2]['src']
+        # get js content
+        js_content = download_content(self.mobile_web_url+js_url, self.mobile_cookie)
+        js_content = js_content.data[270:-238]
+        js_content = js_content.decode('utf8')
+        js_content = js_content + "ajax(\"" + var_c2 + "\");"
+        # get decoder key url
+        key_url = js2py.eval_js(js_content)
+        key_response = download_content(self.mobile_web_url+key_url, self.mobile_cookie)
+        self.mobile_cookie['cookie'] = key_response.headers.get('Set-Cookie')
 
     def getNextSectionId(self):
         response = download_content(self.book_url+self.section_id, self.cookie)
@@ -136,22 +165,32 @@ class Read123du:
                 body = body_item
         return body
 
+    def getMobileSectionData(self):
+        response = download_content(self.mobile_url+self.section_id, self.mobile_cookie)
+        content = response.data
+        content = content.decode('gbk')
+        self.mobile_soup = BeautifulSoup(content, 'html.parser')
+        div_main = self.mobile_soup.body.find_all('div', "TxtContent")
+        body = div_main[0]
+        return body
+
     def getSectionIdLoop(self):
         next_id = self.getNextSectionId()
         self.whole_text = self.whole_text + str(self.getSectionTitle())
-        self.whole_text = self.whole_text + str(self.getSectionData())
+        self.setMobileCookie()
+        self.whole_text = self.whole_text + str(self.getMobileSectionData())
         print("正在处理：", self.getSectionTitle())
         while (next_id != None):
             self.section_id = next_id
             if ("-" in next_id):
                 next_id = self.getNextSectionId()
-                self.whole_text = self.whole_text + str(self.getSectionData())
+                self.whole_text = self.whole_text + str(self.getMobileSectionData())
             else:
                 # set cookie
                 self.setCookie()
                 next_id = self.getNextSectionId()
                 self.whole_text = self.whole_text + str(self.getSectionTitle())
-                self.whole_text = self.whole_text + str(self.getSectionData())
+                self.whole_text = self.whole_text + str(self.getMobileSectionData())
                 print("-------------------------------------------------------")
                 print("正在处理：", self.getSectionTitle())
 
@@ -174,7 +213,7 @@ def main():
     #    processed_result = process_html(result)
     #    whole_book_data = whole_book_data + processed_result
     
-    save_to_file("光阴之外1-501.html", Read123du_inst.whole_text)
+    save_to_file("光阴之外1-507.html", Read123du_inst.whole_text)
 
 if __name__ == '__main__':
     main()
