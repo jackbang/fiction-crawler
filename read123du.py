@@ -64,9 +64,9 @@ def process_html_123du_next_page(content):
 class Read123du:
     website_url = "https://www.123duw.com"
     mobile_web_url = "https://m.123duw.com"
-    book_url = "https://www.123duw.com/dudu-33/3250866/"
-    mobile_url = "https://m.123duw.com/dudu-33/3250866/"
-    section_id = "51981514.html"
+    book_url = "https://www.123duw.com/dudu-33/1662239/"
+    mobile_url = "https://m.123duw.com/dudu-33/1662239/"
+    section_id = "50761545.html"
     cookie = {'cookie':''}
     mobile_cookie = {'cookie':''}
     soup = None
@@ -132,6 +132,12 @@ class Read123du:
         content = response.data
         content = content.decode('gbk')
         self.soup = BeautifulSoup(content, 'html.parser')
+        while (self.soup.body == None):
+            self.setCookie()
+            response = download_content(self.book_url+self.section_id, self.cookie)
+            content = response.data
+            content = content.decode('gbk')
+            self.soup = BeautifulSoup(content, 'html.parser')
         div_main = self.soup.body.find_all('div', "DivMain")
         div_main = div_main[0].find_all('div', "DivMainLeft")
         div_main = div_main[0].find_all('div', id="DivContentBG")
@@ -198,8 +204,8 @@ class Read123du:
 
 def main():
     # 下载网页
-    section_url = "https://www.123duw.com/dudu-33/3250866/"
-    section_id = "51981514.html"
+    section_url = "https://www.123duw.com/dudu-33/1662239/"
+    section_id = "50761545.html"
     Read123du_inst = Read123du(section_url, section_id)
     Read123du_inst.setCookie()
     Read123du_inst.getSectionIdLoop()
@@ -213,7 +219,7 @@ def main():
     #    processed_result = process_html(result)
     #    whole_book_data = whole_book_data + processed_result
     
-    save_to_file("光阴之外1-507.html", Read123du_inst.whole_text)
+    save_to_file("择日飞升1-577.html", Read123du_inst.whole_text)
 
 if __name__ == '__main__':
     main()
